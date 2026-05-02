@@ -39,12 +39,12 @@ export async function fetchNotifications(
   }
 }
 
-// fetches multiple pages (limit=5 each) until we have at least minCount items
-// or no more pages are returned. used by the priority page to score from a
-// larger pool than a single default response gives us.
-export async function fetchAtLeast(minCount: number): Promise<Notification[]> {
+// fetches as many pages as the server will give (limit=5 each, up to MAX_PAGES).
+// the priority page uses this so it always has the largest possible pool to
+// score from, which keeps the top-N selector accurate when the user picks 20.
+export async function fetchAll(): Promise<Notification[]> {
   const PAGE_LIMIT = 5;
-  const MAX_PAGES = 8;
+  const MAX_PAGES = 12;
   const seen = new Set<string>();
   const collected: Notification[] = [];
 
@@ -58,7 +58,6 @@ export async function fetchAtLeast(minCount: number): Promise<Notification[]> {
         collected.push(n);
       }
     }
-    if (collected.length >= minCount) break;
     // server returned fewer than asked - we've hit the end
     if (batch.length < PAGE_LIMIT) break;
   }

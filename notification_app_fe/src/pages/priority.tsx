@@ -17,11 +17,8 @@ import NavBar from "@/components/NavBar";
 import NotificationCard from "@/components/NotificationCard";
 import { useViewed } from "@/hooks/useViewed";
 import { topN, scoreOf } from "@/lib/priority";
-import { fetchAtLeast } from "@/lib/api";
+import { fetchAll } from "@/lib/api";
 import type { Notification } from "@/lib/types";
-
-// pull a buffer beyond max top-N so the score selection is meaningful
-const FETCH_MIN = 25;
 
 export default function PriorityPage() {
   const [n, setN] = useState<number>(10);
@@ -38,7 +35,7 @@ export default function PriorityPage() {
     setLoading(true);
     setError(null);
 
-    fetchAtLeast(FETCH_MIN)
+    fetchAll()
       .then((list) => {
         if (!alive) return;
         setData(list);
