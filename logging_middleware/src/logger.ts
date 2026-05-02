@@ -1,5 +1,5 @@
 import axios from "axios";
-import { API_BASE } from "./constants.js";
+import { getBaseUrl } from "./constants.js";
 import { checkInput } from "./validate.js";
 import { getToken } from "./auth.js";
 
@@ -27,7 +27,7 @@ export async function Log(
 
   try {
     const tok = await getToken();
-    const res = await axios.post(`${API_BASE}/logs`, body, {
+    const res = await axios.post(`${getBaseUrl()}/logs`, body, {
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${tok}`,

@@ -1,7 +1,17 @@
 // allowed values for the log API
 // keeping these as plain arrays so we can easily check with .includes()
 
-export const API_BASE = "http://20.207.122.201/evaluation-service";
+// default base url - can be overridden via setBaseUrl() (e.g. when calling from
+// a browser through a proxy to avoid cors)
+let baseUrl = "http://20.207.122.201/evaluation-service";
+
+export function setBaseUrl(url: string) {
+  baseUrl = url.replace(/\/+$/, "");
+}
+
+export function getBaseUrl() {
+  return baseUrl;
+}
 
 export const stacks = ["backend", "frontend"] as const;
 export const levels = ["debug", "info", "warn", "error", "fatal"] as const;

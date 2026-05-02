@@ -1,5 +1,5 @@
 import axios from "axios";
-import { API_BASE } from "./constants.js";
+import { getBaseUrl } from "./constants.js";
 
 export interface Creds {
   email: string;
@@ -40,7 +40,7 @@ export async function getToken(): Promise<string> {
     throw new Error("call setCreds() before logging");
   }
 
-  const res = await axios.post(`${API_BASE}/auth`, creds, {
+  const res = await axios.post(`${getBaseUrl()}/auth`, creds, {
     headers: { "Content-Type": "application/json" },
   });
 
