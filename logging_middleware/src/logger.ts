@@ -18,11 +18,14 @@ export async function Log(
     return null;
   }
 
+  // server caps message at 48 chars - truncate to be safe
+  const safeMsg = message.length > 48 ? message.slice(0, 48) : message;
+
   const body = {
     stack,
     level,
     package: pkg, // "package" is a reserved-ish word so we rename in the param
-    message,
+    message: safeMsg,
   };
 
   try {
@@ -40,7 +43,7 @@ export async function Log(
     console.warn(
       "[log] failed:",
       err?.response?.status,
-      err?.response?.data ?? err.message
+      JSON.stringify(err?.response?.data) || err.message
     );
     return null;
   }
