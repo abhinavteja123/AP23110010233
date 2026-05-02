@@ -25,9 +25,18 @@ interface Props {
   notification: Notification;
   isNew: boolean;
   onClick?: () => void;
+  // optional rank+score badge - shown only on the priority page
+  rank?: number;
+  score?: number;
 }
 
-export default function NotificationCard({ notification, isNew, onClick }: Props) {
+export default function NotificationCard({
+  notification,
+  isNew,
+  onClick,
+  rank,
+  score,
+}: Props) {
   const { Type, Message, Timestamp, ID } = notification;
 
   return (
@@ -44,6 +53,14 @@ export default function NotificationCard({ notification, isNew, onClick }: Props
     >
       <CardContent sx={{ "&:last-child": { pb: 2 } }}>
         <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1 }}>
+          {typeof rank === "number" && (
+            <Chip
+              label={`#${rank}`}
+              size="small"
+              variant="outlined"
+              sx={{ fontWeight: 700 }}
+            />
+          )}
           <Chip
             label={Type}
             size="small"
@@ -57,6 +74,14 @@ export default function NotificationCard({ notification, isNew, onClick }: Props
             />
           )}
           <Box sx={{ flexGrow: 1 }} />
+          {typeof score === "number" && (
+            <Chip
+              label={`score ${score.toFixed(2)}`}
+              size="small"
+              variant="outlined"
+              sx={{ fontFamily: "monospace" }}
+            />
+          )}
           <Typography variant="caption" color="text.secondary">
             {relativeTime(Timestamp)}
           </Typography>

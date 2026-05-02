@@ -15,25 +15,50 @@ import {
 import { Log } from "logging-middleware";
 import NavBar from "@/components/NavBar";
 import NotificationCard from "@/components/NotificationCard";
-import { useNotifications } from "@/hooks/useNotifications";
 import { useViewed } from "@/hooks/useViewed";
-import { topN } from "@/lib/priority";
+import { topN, scoreOf } from "@/lib/priority";
+import { fetchAtLeast } from "@/lib/api";
+import type { Notification } from "@/lib/types";
 
-// no limit/page params - fetch the default full list and rank locally
-// the server rejects large limit values with 400 so we just take what it gives
+// pull a buffer beyond max top-N so the score selection is meaningful
+const FETCH_MIN = 25;
 
 export default function PriorityPage() {
   const [n, setN] = useState<number>(10);
+  const [data, setData] = useState<Notification[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     Log("frontend", "info", "page", "priority page mounted");
   }, []);
 
-  // pull the default full list and score locally
-  const { data, loading, error } = useNotifications({});
+  useEffect(() => {
+    let alive = true;
+    setLoading(true);
+    setError(null);
+
+    fetchAtLeast(FETCH_MIN)
+      .then((list) => {
+        if (!alive) return;
+        setData(list);
+        setLoading(false);
+      })
+      .catch((err) => {
+        if (!alive) return;
+        const status = err?.response?.status ?? "net";
+        Log("frontend", "error", "page", `priority load fail: ${status}`);
+        setError(`Could not load notifications (${status})`);
+        setLoading(false);
+      });
+
+    return () => {
+      alive = false;
+    };
+  }, []);
+
   const { viewed, markViewed } = useViewed();
 
-  // exclude already-read items from the priority pool
   const unread = useMemo(() => data.filter((x) => !viewed.has(x.ID)), [data, viewed]);
   const top = useMemo(() => topN(unread, n), [unread, n]);
 
@@ -71,7 +96,7 @@ export default function PriorityPage() {
               </Select>
             </FormControl>
             <Typography variant="caption" color="text.secondary">
-              From {unread.length} unread of {data.length} total fetched
+              Showing top {top.length} from {unread.length} unread of {data.length} total fetched
             </Typography>
           </Stack>
         </Paper>
@@ -92,11 +117,13 @@ export default function PriorityPage() {
 
         {!loading && !error && top.length > 0 && (
           <Stack spacing={1.5}>
-            {top.map((item) => (
+            {top.map((item, i) => (
               <NotificationCard
                 key={item.ID}
                 notification={item}
                 isNew={true}
+                rank={i + 1}
+                score={scoreOf(item)}
                 onClick={() => markViewed(item.ID)}
               />
             ))}
